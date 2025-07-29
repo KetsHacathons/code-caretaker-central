@@ -1,7 +1,11 @@
+import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "react-router-dom";
 import { Navigation } from "@/components/ui/navigation";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   LayoutDashboard,
   GitBranch, 
@@ -10,10 +14,51 @@ import {
   RefreshCw,
   TrendingUp,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  Loader2,
+  LogIn
 } from "lucide-react";
 
 const Index = () => {
+  const { user, loading, signOut } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  // Show sign-in prompt for unauthenticated users
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md text-center">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              CleanCode Scanner
+            </CardTitle>
+            <CardDescription>
+              Monitor your code quality, security, and dependencies
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">
+              Sign in to access your dashboard and manage your repositories.
+            </p>
+            <Link to="/auth">
+              <Button className="w-full gap-2">
+                <LogIn className="h-4 w-4" />
+                Sign In to Get Started
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const overviewMetrics = [
     {
       title: "Total Repositories",
@@ -63,7 +108,12 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground">Engineering Management Dashboard</p>
               </div>
             </div>
-            <Navigation />
+            <div className="flex items-center gap-4">
+              <Navigation />
+              <Button variant="outline" onClick={signOut}>
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </header>

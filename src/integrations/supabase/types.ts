@@ -14,7 +14,197 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      provider_accounts: {
+        Row: {
+          access_token: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          provider: string
+          provider_account_id: string
+          refresh_token: string | null
+          scope: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          provider: string
+          provider_account_id: string
+          refresh_token?: string | null
+          scope?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          provider?: string
+          provider_account_id?: string
+          refresh_token?: string | null
+          scope?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      repositories: {
+        Row: {
+          clone_url: string
+          created_at: string
+          default_branch: string | null
+          description: string | null
+          external_id: string
+          full_name: string
+          id: string
+          is_private: boolean | null
+          language: string | null
+          last_scan_at: string | null
+          name: string
+          provider: string
+          scan_status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          clone_url: string
+          created_at?: string
+          default_branch?: string | null
+          description?: string | null
+          external_id: string
+          full_name: string
+          id?: string
+          is_private?: boolean | null
+          language?: string | null
+          last_scan_at?: string | null
+          name: string
+          provider: string
+          scan_status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          clone_url?: string
+          created_at?: string
+          default_branch?: string | null
+          description?: string | null
+          external_id?: string
+          full_name?: string
+          id?: string
+          is_private?: boolean | null
+          language?: string | null
+          last_scan_at?: string | null
+          name?: string
+          provider?: string
+          scan_status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      scan_results: {
+        Row: {
+          coverage_percentage: number | null
+          created_at: string
+          current_version: string | null
+          description: string | null
+          file_path: string | null
+          id: string
+          line_number: number | null
+          metadata: Json | null
+          package_name: string | null
+          recommended_version: string | null
+          repository_id: string
+          rule_id: string | null
+          scan_type: string
+          severity: string | null
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          coverage_percentage?: number | null
+          created_at?: string
+          current_version?: string | null
+          description?: string | null
+          file_path?: string | null
+          id?: string
+          line_number?: number | null
+          metadata?: Json | null
+          package_name?: string | null
+          recommended_version?: string | null
+          repository_id: string
+          rule_id?: string | null
+          scan_type: string
+          severity?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          coverage_percentage?: number | null
+          created_at?: string
+          current_version?: string | null
+          description?: string | null
+          file_path?: string | null
+          id?: string
+          line_number?: number | null
+          metadata?: Json | null
+          package_name?: string | null
+          recommended_version?: string | null
+          repository_id?: string
+          rule_id?: string | null
+          scan_type?: string
+          severity?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_results_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "repositories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
