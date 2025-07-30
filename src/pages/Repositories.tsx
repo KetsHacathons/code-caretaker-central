@@ -145,16 +145,22 @@ export default function Repositories() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Search repositories..."
+                  placeholder="Search connected repositories..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
-              <Button variant="outline" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Connect Repository
-              </Button>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter GitHub repository URL"
+                  className="w-80"
+                />
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Connect
+                </Button>
+              </div>
             </div>
 
             {isLoading ? (
@@ -165,15 +171,21 @@ export default function Repositories() {
               <Card className="text-center py-12">
                 <CardContent>
                   <GitBranch className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No repositories found</h3>
+                  <h3 className="text-lg font-semibold mb-2">No connected repositories</h3>
                   <p className="text-muted-foreground mb-4">
-                    {searchQuery ? 'No repositories match your search.' : 'Connect your first repository to get started.'}
+                    {searchQuery ? 'No connected repositories match your search.' : 'Connect your first repository to get started.'}
                   </p>
                   {!searchQuery && (
-                    <Button className="gap-2">
-                      <Plus className="h-4 w-4" />
-                      Connect Repository
-                    </Button>
+                    <div className="space-y-2">
+                      <Input 
+                        placeholder="Enter GitHub repository URL (e.g., https://github.com/owner/repo)"
+                        className="mb-2"
+                      />
+                      <Button className="gap-2">
+                        <Plus className="h-4 w-4" />
+                        Connect Repository
+                      </Button>
+                    </div>
                   )}
                 </CardContent>
               </Card>
