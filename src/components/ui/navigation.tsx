@@ -32,9 +32,9 @@ const navigationItems = [
     icon: TestTube2,
   },
   {
-    title: "Repositories",
+    title: "Settings",
     href: "/repositories",
-    icon: GitBranch,
+    icon: Settings,
   },
 ];
 
