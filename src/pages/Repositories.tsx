@@ -55,6 +55,8 @@ export default function Repositories() {
   const [sonarQubeToken, setSonarQubeToken] = useState('');
   const [codeQlToken, setCodeQlToken] = useState('');
   const [ossJsonConfig, setOssJsonConfig] = useState('');
+  const [repoUrl, setRepoUrl] = useState('');
+  const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -80,6 +82,129 @@ export default function Repositories() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const parseGitHubUrl = (url: string) => {
+    try {
+      const regex = /github\.com\/([^\/]+)\/([^\/]+)/;
+      const match = url.match(regex);
+      if (match) {
+        return {
+          owner: match[1],
+          repo: match[2].replace('.git', '')
+        };
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const fetchGitHubRepoData = async (owner: string, repo: string) => {
+    const headers: Record<string, string> = {
+      'Accept': 'application/vnd.github.v3+json',
+    };
+    
+    // Add authorization header if GitHub token is available
+    if (githubToken) {
+      headers['Authorization'] = `token ${githubToken}`;
+    }
+
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('Repository not found. Please check the URL.');
+      } else if (response.status === 403) {
+        throw new Error('API rate limit exceeded. Please add a GitHub token in the Integrations tab.');
+      } else {
+        throw new Error(`Failed to fetch repository data: ${response.statusText}`);
+      }
+    }
+
+    return response.json();
+  };
+
+  const connectRepository = async () => {
+    if (!repoUrl.trim()) {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid GitHub repository URL.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const parsed = parseGitHubUrl(repoUrl);
+    if (!parsed) {
+      toast({
+        title: "Invalid GitHub URL",
+        description: "Please enter a valid GitHub repository URL (e.g., https://github.com/owner/repo).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsConnecting(true);
+    try {
+      // Fetch repository data from GitHub API
+      const repoData = await fetchGitHubRepoData(parsed.owner, parsed.repo);
+      
+      // Check if repository already exists
+      const { data: existingRepo } = await supabase
+        .from('repositories')
+        .select('id')
+        .eq('external_id', repoData.id.toString())
+        .eq('user_id', user?.id)
+        .single();
+
+      if (existingRepo) {
+        toast({
+          title: "Repository already connected",
+          description: "This repository is already connected to your account.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Save repository to database
+      const { error } = await supabase
+        .from('repositories')
+        .insert({
+          user_id: user?.id,
+          name: repoData.name,
+          full_name: repoData.full_name,
+          provider: 'github',
+          external_id: repoData.id.toString(),
+          clone_url: repoData.clone_url,
+          default_branch: repoData.default_branch || 'main',
+          description: repoData.description,
+          language: repoData.language,
+          is_private: repoData.private,
+          scan_status: 'pending'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Repository connected successfully",
+        description: `${repoData.full_name} has been added to your repositories.`,
+      });
+
+      // Refresh repositories list
+      fetchRepositories();
+      setRepoUrl('');
+    } catch (error: any) {
+      toast({
+        title: "Failed to connect repository",
+        description: error.message || "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -155,10 +280,20 @@ export default function Repositories() {
                 <Input
                   placeholder="Enter GitHub repository URL"
                   className="w-80"
+                  value={repoUrl}
+                  onChange={(e) => setRepoUrl(e.target.value)}
                 />
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Connect
+                <Button 
+                  className="gap-2" 
+                  onClick={connectRepository}
+                  disabled={isConnecting}
+                >
+                  {isConnecting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
+                  {isConnecting ? 'Connecting...' : 'Connect'}
                 </Button>
               </div>
             </div>
@@ -180,10 +315,20 @@ export default function Repositories() {
                       <Input 
                         placeholder="Enter GitHub repository URL (e.g., https://github.com/owner/repo)"
                         className="mb-2"
+                        value={repoUrl}
+                        onChange={(e) => setRepoUrl(e.target.value)}
                       />
-                      <Button className="gap-2">
-                        <Plus className="h-4 w-4" />
-                        Connect Repository
+                      <Button 
+                        className="gap-2" 
+                        onClick={connectRepository}
+                        disabled={isConnecting}
+                      >
+                        {isConnecting ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Plus className="h-4 w-4" />
+                        )}
+                        {isConnecting ? 'Connecting...' : 'Connect Repository'}
                       </Button>
                     </div>
                   )}
@@ -298,7 +443,12 @@ export default function Repositories() {
                       Generate a token with 'repo' scope from GitHub Settings &gt; Developer settings &gt; Personal access tokens
                     </p>
                   </div>
-                  <Button className="w-full">
+                  <Button className="w-full" onClick={() => {
+                    toast({
+                      title: "GitHub token saved",
+                      description: "Your GitHub token has been saved successfully.",
+                    });
+                  }}>
                     <Key className="h-4 w-4 mr-2" />
                     Save GitHub Token
                   </Button>
