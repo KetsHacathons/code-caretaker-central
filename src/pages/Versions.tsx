@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { Navigation } from "@/components/ui/navigation";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { UpgradeSelectionModal } from "@/components/upgrade/UpgradeSelectionModal";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { 
   RefreshCw,
   Package,
@@ -16,6 +20,26 @@ import {
 } from "lucide-react";
 
 const Versions = () => {
+  const { signOut } = useAuth();
+  const { toast } = useToast();
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+
+  // Mock repositories data - in real app, this would come from your API/database
+  const mockRepositories = [
+    { id: "1", name: "auth-service", full_name: "company/auth-service" },
+    { id: "2", name: "user-frontend", full_name: "company/user-frontend" },
+    { id: "3", name: "payment-api", full_name: "company/payment-api" },
+    { id: "4", name: "analytics-service", full_name: "company/analytics-service" }
+  ];
+
+  const handleStartUpgrade = (data: { repositoryId: string; technology: string; targetVersion: string }) => {
+    const selectedRepo = mockRepositories.find(repo => repo.id === data.repositoryId);
+    toast({
+      title: "Upgrade Started",
+      description: `Started ${data.technology} upgrade to version ${data.targetVersion} for ${selectedRepo?.full_name}`
+    });
+  };
+
   const versionMetrics = [
     {
       title: "Java Projects",
@@ -127,7 +151,12 @@ const Versions = () => {
                 <p className="text-sm text-muted-foreground">Centralized version upgrades across all repositories</p>
               </div>
             </div>
-            <Navigation />
+            <div className="flex items-center gap-4">
+              <Navigation />
+              <Button variant="outline" onClick={signOut}>
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -143,7 +172,7 @@ const Versions = () => {
 
         {/* Actions Bar */}
         <div className="flex flex-wrap gap-4 mb-8">
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={() => setIsUpgradeModalOpen(true)}>
             <Play className="h-4 w-4" />
             Start All Upgrades
           </Button>
@@ -229,6 +258,14 @@ const Versions = () => {
           </CardContent>
         </Card>
       </main>
+
+      {/* Upgrade Selection Modal */}
+      <UpgradeSelectionModal
+        open={isUpgradeModalOpen}
+        onOpenChange={setIsUpgradeModalOpen}
+        repositories={mockRepositories}
+        onStartUpgrade={handleStartUpgrade}
+      />
     </div>
   );
 };
