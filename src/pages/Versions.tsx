@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { UpgradeSelectionModal } from "@/components/upgrade/UpgradeSelectionModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useRepositories } from "@/hooks/useRepositories";
 import { 
   RefreshCw,
   Package,
@@ -22,18 +23,11 @@ import {
 const Versions = () => {
   const { signOut } = useAuth();
   const { toast } = useToast();
+  const { repositories, loading: repositoriesLoading } = useRepositories();
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
-  // Mock repositories data - in real app, this would come from your API/database
-  const mockRepositories = [
-    { id: "1", name: "auth-service", full_name: "company/auth-service" },
-    { id: "2", name: "user-frontend", full_name: "company/user-frontend" },
-    { id: "3", name: "payment-api", full_name: "company/payment-api" },
-    { id: "4", name: "analytics-service", full_name: "company/analytics-service" }
-  ];
-
   const handleStartUpgrade = (data: { repositoryId: string; technology: string; targetVersion: string }) => {
-    const selectedRepo = mockRepositories.find(repo => repo.id === data.repositoryId);
+    const selectedRepo = repositories.find(repo => repo.id === data.repositoryId);
     toast({
       title: "Upgrade Started",
       description: `Started ${data.technology} upgrade to version ${data.targetVersion} for ${selectedRepo?.full_name}`
@@ -263,7 +257,8 @@ const Versions = () => {
       <UpgradeSelectionModal
         open={isUpgradeModalOpen}
         onOpenChange={setIsUpgradeModalOpen}
-        repositories={mockRepositories}
+        repositories={repositories}
+        loading={repositoriesLoading}
         onStartUpgrade={handleStartUpgrade}
       />
     </div>

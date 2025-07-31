@@ -3,17 +3,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-
-interface Repository {
-  id: string;
-  name: string;
-  full_name: string;
-}
+import { type Repository } from "@/hooks/useRepositories";
 
 interface UpgradeSelectionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   repositories: Repository[];
+  loading?: boolean;
   onStartUpgrade: (data: {
     repositoryId: string;
     technology: string;
@@ -31,6 +27,7 @@ export function UpgradeSelectionModal({
   open, 
   onOpenChange, 
   repositories, 
+  loading = false,
   onStartUpgrade 
 }: UpgradeSelectionModalProps) {
   const [selectedRepository, setSelectedRepository] = useState<string>("");
@@ -69,14 +66,25 @@ export function UpgradeSelectionModal({
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="repository">Repository</Label>
-            <Select value={selectedRepository} onValueChange={setSelectedRepository}>
+            <Select value={selectedRepository} onValueChange={setSelectedRepository} disabled={loading}>
               <SelectTrigger id="repository">
-                <SelectValue placeholder="Select a repository" />
+                <SelectValue placeholder={
+                  loading 
+                    ? "Loading repositories..." 
+                    : repositories.length === 0 
+                      ? "No repositories found - connect repositories in Settings" 
+                      : "Select a repository"
+                } />
               </SelectTrigger>
               <SelectContent>
                 {repositories.map((repo) => (
                   <SelectItem key={repo.id} value={repo.id}>
-                    {repo.full_name}
+                    <div className="flex flex-col">
+                      <span>{repo.full_name}</span>
+                      {repo.language && (
+                        <span className="text-xs text-muted-foreground">{repo.language}</span>
+                      )}
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
