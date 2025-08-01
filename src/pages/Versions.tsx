@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { UpgradeSelectionModal } from "@/components/upgrade/UpgradeSelectionModal";
+import { AutoUpdateConfigModal } from "@/components/upgrade/AutoUpdateConfigModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useRepositories } from "@/hooks/useRepositories";
@@ -25,6 +26,7 @@ const Versions = () => {
   const { toast } = useToast();
   const { repositories, loading: repositoriesLoading } = useRepositories();
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [isAutoUpdateConfigOpen, setIsAutoUpdateConfigOpen] = useState(false);
 
   const handleStartUpgrade = (data: { repositoryId: string; technology: string; targetVersion: string }) => {
     const selectedRepo = repositories.find(repo => repo.id === data.repositoryId);
@@ -174,7 +176,7 @@ const Versions = () => {
             <RefreshCw className="h-4 w-4" />
             Scan for Updates
           </Button>
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => setIsAutoUpdateConfigOpen(true)}>
             <Settings className="h-4 w-4" />
             Configure Auto-Updates
           </Button>
@@ -260,6 +262,12 @@ const Versions = () => {
         repositories={repositories}
         loading={repositoriesLoading}
         onStartUpgrade={handleStartUpgrade}
+      />
+
+      {/* Auto-Update Configuration Modal */}
+      <AutoUpdateConfigModal
+        open={isAutoUpdateConfigOpen}
+        onOpenChange={setIsAutoUpdateConfigOpen}
       />
     </div>
   );
