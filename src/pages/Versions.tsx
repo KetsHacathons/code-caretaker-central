@@ -10,6 +10,7 @@ import { AutoUpdateConfigModal } from "@/components/upgrade/AutoUpdateConfigModa
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useRepositories } from "@/hooks/useRepositories";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   RefreshCw,
   Package,
@@ -27,13 +28,65 @@ const Versions = () => {
   const { repositories, loading: repositoriesLoading } = useRepositories();
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [isAutoUpdateConfigOpen, setIsAutoUpdateConfigOpen] = useState(false);
+  const [isCreatingUpgrade, setIsCreatingUpgrade] = useState(false);
 
-  const handleStartUpgrade = (data: { repositoryId: string; technology: string; targetVersion: string }) => {
+  const handleStartUpgrade = async (data: { repositoryId: string; technology: string; targetVersion: string }) => {
     const selectedRepo = repositories.find(repo => repo.id === data.repositoryId);
-    toast({
-      title: "Upgrade Started",
-      description: `Started ${data.technology} upgrade to version ${data.targetVersion} for ${selectedRepo?.full_name}`
-    });
+    setIsCreatingUpgrade(true);
+    
+    try {
+      toast({
+        title: "Creating Upgrade",
+        description: `Creating branch and PR for ${data.technology} upgrade to ${data.targetVersion}...`
+      });
+
+      const { data: result, error } = await supabase.functions.invoke('create-upgrade-pr', {
+        body: {
+          repositoryId: data.repositoryId,
+          technology: data.technology,
+          targetVersion: data.targetVersion
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      toast({
+        title: "Pull Request Created! 🎉",
+        description: (
+          <div className="space-y-2">
+            <p>Successfully created PR #{result.pullRequestNumber} for {selectedRepo?.full_name}</p>
+            <p className="text-sm text-muted-foreground">
+              Please review and merge the pull request to complete the upgrade.
+            </p>
+            <a 
+              href={result.pullRequestUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-block mt-2 text-primary hover:underline"
+            >
+              View Pull Request →
+            </a>
+          </div>
+        ),
+        duration: 10000,
+      });
+
+    } catch (error) {
+      console.error('Upgrade creation failed:', error);
+      toast({
+        title: "Upgrade Failed",
+        description: `Failed to create upgrade: ${error.message}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingUpgrade(false);
+    }
   };
 
   const versionMetrics = [
@@ -260,7 +313,7 @@ const Versions = () => {
         open={isUpgradeModalOpen}
         onOpenChange={setIsUpgradeModalOpen}
         repositories={repositories}
-        loading={repositoriesLoading}
+        loading={repositoriesLoading || isCreatingUpgrade}
         onStartUpgrade={handleStartUpgrade}
       />
 

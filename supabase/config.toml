@@ -1,1 +1,4 @@
 project_id = "hbxbmrffzlmkuahhsfwx"
+
+[functions.create-upgrade-pr]
+verify_jwt = false

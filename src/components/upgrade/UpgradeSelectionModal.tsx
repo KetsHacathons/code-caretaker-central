@@ -135,9 +135,9 @@ export function UpgradeSelectionModal({
           </Button>
           <Button 
             onClick={handleStartUpgrade}
-            disabled={!selectedRepository || !selectedTechnology || !selectedVersion}
+            disabled={!selectedRepository || !selectedTechnology || !selectedVersion || loading}
           >
-            Start Upgrade
+            {loading ? "Creating..." : "Start Upgrade"}
           </Button>
         </DialogFooter>
       </DialogContent>
